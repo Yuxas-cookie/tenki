@@ -35,9 +35,10 @@ export default function ExpensesPage() {
   const [scanImage, setScanImage] = useState<string | null>(null);
   const [scanFileName, setScanFileName] = useState("");
   const [scanning, setScanning] = useState(false);
-  const [scanResult, setScanResult] = useState<{ date: string; storeName: string; amount: number; items: { name: string; price: number }[]; suggestedCategory: ExpenseCategory } | null>(null);
+  const [scanResult, setScanResult] = useState<{ date: string; storeName: string; amount: number; items: { name: string; price: number }[]; suggestedCategory: ExpenseCategory; _mock?: boolean; _reason?: string } | null>(null);
   const [regCategory, setRegCategory] = useState<ExpenseCategory>("material");
   const [regSiteId, setRegSiteId] = useState<string>("none");
+  const [debugInfo, setDebugInfo] = useState<{ mock: boolean; reason: string } | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
   const now = new Date();
@@ -63,10 +64,16 @@ export default function ExpensesPage() {
       const data = await res.json();
       if (data._mock) {
         console.warn("[scan] Mock data returned. Reason:", data._reason);
+        setDebugInfo({ mock: true, reason: data._reason || "不明" });
+      } else {
+        setDebugInfo({ mock: false, reason: "Gemini API success" });
       }
       setScanResult(data);
       setRegCategory(data.suggestedCategory || "material");
-    } catch (err) { console.error("[scan] Fetch failed:", err); }
+    } catch (err) {
+      console.error("[scan] Fetch failed:", err);
+      setDebugInfo({ mock: true, reason: `Fetch失敗: ${String(err)}` });
+    }
     setScanning(false);
   };
 
@@ -171,6 +178,23 @@ export default function ExpensesPage() {
                 ) : (
                   /* Scan result confirmation */
                   <div className="space-y-6">
+                    {/* Debug banner */}
+                    {debugInfo && (
+                      <div className={`rounded-xl p-4 text-sm font-mono ${debugInfo.mock ? "bg-red-50 border-2 border-red-300 text-red-800" : "bg-green-50 border-2 border-green-300 text-green-800"}`}>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-lg">{debugInfo.mock ? "⚠️" : "✅"}</span>
+                          <span className="font-bold text-base">
+                            {debugInfo.mock ? "モックデータが返されました（API未使用）" : "Gemini APIで読み取り成功"}
+                          </span>
+                        </div>
+                        <p>理由: {debugInfo.reason}</p>
+                        {debugInfo.mock && (
+                          <p className="mt-1 text-red-600 font-semibold">
+                            → Vercelの環境変数に GEMINI_API_KEY が設定されているか確認してください
+                          </p>
+                        )}
+                      </div>
+                    )}
                     <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-5">
                       <div className="flex items-center justify-between mb-3">
                         <div>
@@ -228,7 +252,7 @@ export default function ExpensesPage() {
                         <Check size={22} /> この内容で登録
                       </Button>
                       <Button variant="outline" size="lg" className="rounded-xl px-6"
-                        onClick={() => { setScanResult(null); setScanImage(null); setScanFileName(""); }}
+                        onClick={() => { setScanResult(null); setScanImage(null); setScanFileName(""); setDebugInfo(null); }}
                       >
                         やり直す
                       </Button>

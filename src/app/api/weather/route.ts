@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const res = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=34.5198&longitude=135.4405&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max,relative_humidity_2m_max&timezone=Asia%2FTokyo&forecast_days=16`,
+      `https://api.open-meteo.com/v1/forecast?latitude=34.6937&longitude=135.5023&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max,relative_humidity_2m_max&timezone=Asia%2FTokyo&forecast_days=16`,
       { next: { revalidate: 3600 } }
     );
     if (!res.ok) throw new Error(`Open-Meteo ${res.status}`);
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       const hum = Math.round(d.relative_humidity_2m_max[i]);
       return { date, weather: w, tempMax: tMax, tempMin: Math.round(d.temperature_2m_min[i]), humidity: hum, windSpeed: Math.round(d.wind_speed_10m_max[i] / 3.6 * 10) / 10, precipitation: Math.round(d.precipitation_sum[i] * 10) / 10, canWork: tMax >= 5 && hum < 85 && !["rainy", "heavy_rain", "storm"].includes(w) };
     });
-    return Response.json({ location: "大阪府高石市", days, fetchedAt: new Date().toISOString(), isDemo: false });
+    return Response.json({ location: "大阪市", days, fetchedAt: new Date().toISOString(), isDemo: false });
   } catch {
     return Response.json({ ...weatherScenarios[scenario], _warning: "Using demo data" });
   }

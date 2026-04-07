@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
 import { WeatherMode, WeatherScenario, WeatherModeState, WeatherOverride, WeatherDay } from "@/lib/types";
 import { weatherScenarios } from "@/lib/data/weather-scenarios";
 
@@ -12,6 +12,7 @@ interface WeatherModeContextType {
   toggleRainOverride: (date: string) => void;
   clearOverrides: () => void;
   getEffectiveDays: () => WeatherDay[];
+  isLoadingReal: boolean;
 }
 
 const WeatherModeContext = createContext<WeatherModeContextType | null>(null);
@@ -22,9 +23,32 @@ export function WeatherModeProvider({ children }: { children: ReactNode }) {
     scenario: "mid_rain",
   });
   const [overrides, setOverrides] = useState<WeatherOverride[]>([]);
+  const [realDays, setRealDays] = useState<WeatherDay[] | null>(null);
+  const [isLoadingReal, setIsLoadingReal] = useState(false);
 
-  const setMode = (mode: WeatherMode) =>
+  // Fetch real weather data when switching to real mode
+  useEffect(() => {
+    if (weatherMode.mode === "real" && !realDays) {
+      setIsLoadingReal(true);
+      fetch("/api/weather?mode=real")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.days && Array.isArray(data.days)) {
+            setRealDays(data.days);
+          }
+        })
+        .catch(() => {
+          // Fallback to demo on error
+          setRealDays(null);
+        })
+        .finally(() => setIsLoadingReal(false));
+    }
+  }, [weatherMode.mode, realDays]);
+
+  const setMode = (mode: WeatherMode) => {
     setWeatherMode((prev) => ({ ...prev, mode }));
+    setOverrides([]);
+  };
 
   const setScenario = (scenario: WeatherScenario) => {
     setWeatherMode((prev) => ({ ...prev, scenario }));
@@ -42,9 +66,17 @@ export function WeatherModeProvider({ children }: { children: ReactNode }) {
   const clearOverrides = useCallback(() => setOverrides([]), []);
 
   const getEffectiveDays = useCallback((): WeatherDay[] => {
-    const base = weatherScenarios[weatherMode.scenario];
-    if (!base) return [];
-    return base.days.map((day) => {
+    // Use real data when in real mode and data is available
+    let baseDays: WeatherDay[];
+    if (weatherMode.mode === "real" && realDays) {
+      baseDays = realDays;
+    } else {
+      const base = weatherScenarios[weatherMode.scenario];
+      if (!base) return [];
+      baseDays = base.days;
+    }
+
+    return baseDays.map((day) => {
       const override = overrides.find((o) => o.date === day.date);
       if (!override) return day;
       return {
@@ -54,7 +86,7 @@ export function WeatherModeProvider({ children }: { children: ReactNode }) {
         precipitation: 15,
       };
     });
-  }, [weatherMode.scenario, overrides]);
+  }, [weatherMode.mode, weatherMode.scenario, realDays, overrides]);
 
   return (
     <WeatherModeContext.Provider
@@ -66,6 +98,7 @@ export function WeatherModeProvider({ children }: { children: ReactNode }) {
         toggleRainOverride,
         clearOverrides,
         getEffectiveDays,
+        isLoadingReal,
       }}
     >
       {children}

@@ -224,7 +224,7 @@ function StepIndicator({ current }: { current: 1 | 2 | 3 }) {
   ] as const;
 
   return (
-    <div className="flex items-center justify-center gap-0 mb-12 px-4">
+    <div className="flex items-center justify-center gap-0 mb-8 px-4">
       {steps.map((s, i) => {
         const isActive = current === s.num;
         const isDone = current > s.num;
@@ -233,19 +233,19 @@ function StepIndicator({ current }: { current: 1 | 2 | 3 }) {
         return (
           <div key={s.num} className="flex items-center">
             <div className="flex flex-col items-center">
-              <div className={`flex h-12 w-12 items-center justify-center rounded-full transition-all duration-300 ${
+              <div className={`flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 ${
                 isDone ? "bg-green-500 text-white shadow-md shadow-green-200" :
                 isActive ? "bg-blue-600 text-white shadow-lg shadow-blue-200" :
                 "bg-gray-200 text-gray-400"
               }`}>
-                {isDone ? <Check size={22} /> : isActive && s.num === 2 ? <Loader2 size={22} className="animate-spin" /> : <Icon size={22} />}
+                {isDone ? <Check size={18} /> : isActive && s.num === 2 ? <Loader2 size={18} className="animate-spin" /> : <Icon size={18} />}
               </div>
-              <p className={`mt-2 text-sm font-semibold whitespace-nowrap ${
+              <p className={`mt-1.5 text-xs font-semibold whitespace-nowrap ${
                 isDone ? "text-green-600" : isActive ? "text-blue-600" : "text-gray-400"
               }`}>{s.label}</p>
             </div>
             {i < steps.length - 1 && (
-              <div className={`w-8 sm:w-20 lg:w-36 h-1 rounded-full mx-3 mb-6 transition-all duration-500 ${
+              <div className={`w-8 sm:w-16 lg:w-28 h-0.5 rounded-full mx-2 mb-5 transition-all duration-500 ${
                 current > s.num ? "bg-green-400" : current === s.num ? "bg-blue-200" : "bg-gray-200"
               }`} />
             )}
@@ -282,30 +282,46 @@ function Step1Input(props: {
   return (
     <div>
       {/* Hero */}
-      <div className="text-center mb-12">
-        <div className="inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-purple-500 to-blue-600 shadow-xl shadow-purple-200/50 mb-6">
-          <Sparkles size={40} className="text-white" />
+      <div className="text-center mb-8">
+        <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 to-blue-600 shadow-lg shadow-purple-200/50 mb-4">
+          <Sparkles size={28} className="text-white" />
         </div>
-        <h1 className="text-2xl sm:text-3xl lg:text-5xl font-extrabold text-gray-900 tracking-tight mb-3">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-gray-900 tracking-tight mb-2">
           スケジュールシミュレーター
         </h1>
-        <p className="text-xl text-gray-500 max-w-2xl mx-auto">
-          現場データを確認し、施工する工程を選んで<br className="hidden sm:block" />
-          AIが天気予報に基づく最適プランを3つ提案します
+        <p className="text-base text-gray-500 max-w-2xl mx-auto">
+          現場データを確認し、施工する工程を選んで、AIが最適プランを3つ提案します
         </p>
+      </div>
+
+      {/* Demo data button */}
+      <div className="flex justify-center mb-6">
+        <Button variant="outline" className="gap-2 text-sm rounded-lg px-4 py-2"
+          onClick={() => {
+            props.setSiteName("高石市 田中邸");
+            props.setAddress("大阪府高石市取石3丁目");
+            props.setOwnerName("田中 太郎");
+            props.setBuildingType("house");
+            props.setPaintArea("150");
+            props.setStartDate("2026-04-14");
+            props.handleWorkType("exterior");
+          }}
+        >
+          <Sparkles size={16} /> デモデータで自動入力
+        </Button>
       </div>
 
       {/* Blueprint link */}
       <Link href="/estimate"
-        className="flex items-center justify-between rounded-2xl border-2 border-dashed border-emerald-300 bg-emerald-50/50 p-6 mb-10 hover:border-emerald-500 hover:shadow-md transition-all group"
+        className="flex items-center justify-between rounded-xl border-2 border-dashed border-emerald-300 bg-emerald-50/50 p-4 mb-8 hover:border-emerald-500 hover:shadow-md transition-all group"
       >
-        <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md">
-            <FileText size={28} />
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-sm">
+            <FileText size={20} />
           </div>
           <div>
-            <p className="text-xl font-bold text-gray-900">設計図から自動入力</p>
-            <p className="text-base text-gray-500">図面をアップロードすると、AIが面積を推定して見積も作成します</p>
+            <p className="text-base font-bold text-gray-900">設計図から自動入力</p>
+            <p className="text-sm text-gray-500">図面をアップロードすると、AIが面積を推定して見積も作成します</p>
           </div>
         </div>
         <ArrowRight size={24} className="text-emerald-500 group-hover:translate-x-1 transition-transform" />
@@ -801,11 +817,11 @@ function InputField({ icon, label, value, onChange, placeholder, type = "text" }
 }) {
   return (
     <div>
-      <label className="flex items-center gap-2 text-base font-semibold text-gray-700 mb-2">
+      <label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 mb-1.5">
         <span className="text-gray-400">{icon}</span> {label}
       </label>
       <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
-        className="w-full rounded-xl border-2 border-gray-200 px-5 py-4 text-base text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all"
+        className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all"
       />
     </div>
   );

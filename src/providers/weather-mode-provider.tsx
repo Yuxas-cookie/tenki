@@ -19,7 +19,7 @@ const WeatherModeContext = createContext<WeatherModeContextType | null>(null);
 
 export function WeatherModeProvider({ children }: { children: ReactNode }) {
   const [weatherMode, setWeatherMode] = useState<WeatherModeState>({
-    mode: "demo",
+    mode: "real",
     scenario: "mid_rain",
   });
   const [overrides, setOverrides] = useState<WeatherOverride[]>([]);

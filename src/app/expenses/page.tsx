@@ -61,9 +61,12 @@ export default function ExpensesPage() {
         body: JSON.stringify({ image: scanImage }),
       });
       const data = await res.json();
+      if (data._mock) {
+        console.warn("[scan] Mock data returned. Reason:", data._reason);
+      }
       setScanResult(data);
       setRegCategory(data.suggestedCategory || "material");
-    } catch { /* ignore */ }
+    } catch (err) { console.error("[scan] Fetch failed:", err); }
     setScanning(false);
   };
 

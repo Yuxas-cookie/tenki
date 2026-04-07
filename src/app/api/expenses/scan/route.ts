@@ -18,8 +18,9 @@ export async function POST(request: NextRequest) {
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
+    console.warn("[expenses/scan] GEMINI_API_KEY not set — returning mock data");
     await new Promise((r) => setTimeout(r, 2000));
-    return Response.json(MOCK_RESULT);
+    return Response.json({ ...MOCK_RESULT, _mock: true, _reason: "GEMINI_API_KEY not set" });
   }
 
   try {
@@ -65,10 +66,14 @@ JSONのみ返してください。
     const data = await res.json();
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
     const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return Response.json(MOCK_RESULT);
+    if (!jsonMatch) {
+      console.error("[expenses/scan] No JSON found in Gemini response:", text);
+      return Response.json({ ...MOCK_RESULT, _mock: true, _reason: "No JSON in Gemini response" });
+    }
 
     return Response.json(JSON.parse(jsonMatch[0]));
-  } catch {
-    return Response.json(MOCK_RESULT);
+  } catch (err) {
+    console.error("[expenses/scan] Gemini API failed:", err);
+    return Response.json({ ...MOCK_RESULT, _mock: true, _reason: String(err) });
   }
 }

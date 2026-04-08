@@ -26,7 +26,11 @@ export async function POST(request: NextRequest) {
               ctrl.enqueue(enc.encode(JSON.stringify({ type: "reasoning_chunk", data: ev.delta.text }) + "\n"));
             }
           }
-          ctrl.enqueue(enc.encode(JSON.stringify({ type: "result", data: parseAIResponse(full, processes) }) + "\n"));
+          try {
+            ctrl.enqueue(enc.encode(JSON.stringify({ type: "result", data: parseAIResponse(full, processes) }) + "\n"));
+          } catch {
+            ctrl.enqueue(enc.encode(JSON.stringify({ type: "result", data: generateMockResult(processes, "reschedule") }) + "\n"));
+          }
         } catch (e) {
           ctrl.enqueue(enc.encode(JSON.stringify({ type: "error", data: { message: e instanceof Error ? e.message : "エラー" } }) + "\n"));
         } finally { ctrl.close(); }

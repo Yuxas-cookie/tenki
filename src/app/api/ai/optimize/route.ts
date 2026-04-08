@@ -27,12 +27,17 @@ export async function POST(request: NextRequest) {
               ctrl.enqueue(enc.encode(JSON.stringify({ type: "reasoning_chunk", data: ev.delta.text }) + "\n"));
             }
           }
-          const result = parseAIResponse(full, processes);
-          // Convert single result to 3 proposals for v3
-          const proposals = generateMockProposals(processes);
-          proposals[1].schedule = result.optimizedSchedule;
-          proposals[1].summary = result.summary;
-          proposals[1].suggestions = result.suggestions;
+          let proposals;
+          try {
+            const result = parseAIResponse(full, processes);
+            proposals = generateMockProposals(processes);
+            proposals[1].schedule = result.optimizedSchedule;
+            proposals[1].summary = result.summary;
+            proposals[1].suggestions = result.suggestions;
+          } catch {
+            // AI response parse failed — fallback to mock proposals
+            proposals = generateMockProposals(processes);
+          }
           ctrl.enqueue(enc.encode(JSON.stringify({ type: "proposals", data: proposals }) + "\n"));
         } catch (e) {
           ctrl.enqueue(enc.encode(JSON.stringify({ type: "error", data: { message: e instanceof Error ? e.message : "エラー" } }) + "\n"));
